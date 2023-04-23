@@ -2,11 +2,30 @@ import sys
 import argparse
 import re
 import os
+import hashlib
+import time
+import pyotp
+import base64
 
 
 def encryptKey(file_name):
-    key = open(file_name, 'r').read()
-    ran = os.urandom(16)
+    with open(file_name, 'r') as file:
+        key_hex = file.read()
+        salt = os.urandom(16)
+        comb = salt + bytes.fromhex(key_hex)
+        hash_obj = hashlib.sha256(comb)
+        encrypted_str = hash_obj.hexdigest()
+        with open('ft_otp.key', 'w') as key_key:
+            key_key.write(encrypted_str)
+    print('Key was successfully saved in ft_otp.key.')
+
+
+def generateKey(file_name):
+    with open(file_name, 'r') as file:
+        key_key = file.read()
+        time_interval = int(time.time() // 30)
+        passwd = pyotp.TOTP(base64.b32encode(key_key.encode())).now()
+        print(passwd, ' ', time_interval)
 
 
 def check(arg, form, err, typ):
@@ -25,10 +44,13 @@ def check(arg, form, err, typ):
 
 
 def parse():
-    parser = argparse.ArgumentParser(description='Web scrapper')
-    parser.add_argument('-g', type=str, help='Recursive depth')
-    parser.add_argument('-k', type=str, help='Path to store pictures')
+    parser = argparse.ArgumentParser(description='OTP generator')
+    parser.add_argument('-g', type=str, help='Encrypt and save key')
+    parser.add_argument('-k', type=str, help='Generate password')
     args = parser.parse_args()
+    if len(sys.argv) != 3:
+        print('./ft_otp: error: wrong number of arguments')
+        exit(1)
     err = './ft_otp: error: key must be 64 hexadecimal characters'
     if args.g:
         check(args.g, '.hex', err, 'hexadecimal')
@@ -40,7 +62,7 @@ def parse():
 if __name__ == "__main__":
     args = parse()
     if args.g:
-        print('encrypt key')
+        encryptKey(args.g)
     else:
-        print('generate key')
+        generateKey(args.k)
 
