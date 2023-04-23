@@ -1,11 +1,11 @@
 import sys
+import os
 import argparse
 import re
-import os
 import hashlib
 import time
-import pyotp
 import base64
+import pyotp
 
 
 def encryptKey(file_name):
@@ -20,7 +20,7 @@ def encryptKey(file_name):
     print('Key was successfully saved in ft_otp.key.')
 
 
-def generateKey(file_name):
+def generatePasswd(file_name):
     with open(file_name, 'r') as file:
         key_key = file.read()
         time_interval = int(time.time() // 30)
@@ -64,5 +64,5 @@ if __name__ == "__main__":
     if args.g:
         encryptKey(args.g)
     else:
-        generateKey(args.k)
+        generatePasswd(args.k)
 
